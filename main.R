@@ -1,10 +1,3 @@
-require(foreign)
-require(ggplot2)
-require(MASS)
-require(Hmisc)
-require(reshape2)
-require(ordinal)
-
 library(foreign)
 library(ggplot2)
 library(MASS)
@@ -12,7 +5,9 @@ library(Hmisc)
 library(reshape2)
 library(VGAM)
 library(sure)
-
+library(ordinal)
+library(brglm2)
+library(tidyverse)
 # library(ordinal)
 
 setwd("C:/Users/bbecerra/Documents/Git-Projects/heart-disease-glm")
@@ -68,11 +63,22 @@ exploratoryAnalysis <- function(processed.cleveland) {
   
 }
 
+backwardsSelection <- function(model){
+  backwards <- step(model,trace=0)
+  summary(backwards)
+  formula(backwards)
+  return(backwards)
+}
+
+residualDiagnostics <- function ()
+
 cleveland <- formatUnprocessedClevelandData()
 processed.cleveland <- formatProcessedClevelandData()
 res.polr=polr(factor(num)~age+factor(sex) + factor(cp) + trestbps + chol + factor(fbs) + factor(restecg) + thalach + factor(exang) + oldpeak + factor(slope) + factor(ca) + factor(thal),data=processed.cleveland)
 summary(res.polr)
 (ctable <- coef(summary(res.polr)))
+
+backwardsSelection(res.polr)
 
 ## calculate and store p valuesfitted(res.polr)
 p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
@@ -80,16 +86,40 @@ p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
 ## combined table
 (ctable <- cbind(ctable, "p value" = p))
 (ci <- confint(res.polr)) # default method gives profiled CIs
-resids(res.polr)
+residuals.polr <- resids(res.polr)
+residuals.polr.std <- (residuals.polr - mean(residuals.polr))/ sd(residuals.polr)
+
+qqnorm(residuals.polr.std, 
+         ylab="Standardized Residuals", 
+         xlab="Normal Scores", 
+         main="Old Faithful Eruptions") 
+hist(residuals.polr)
+plot(residuals.polr)
 
 
 
-
-fit <- vglm(cbind(age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal) ~ num, family=cumulative(parallel=TRUE), data=processed.cleveland)
-res.polr=polr(factor(num)~age+factor(sex) + factor(cp) + trestbps + chol + factor(fbs) + factor(restecg) + thalach + factor(exang) + oldpeak + factor(slope) + factor(ca) + factor(thal),weights=frequency,data=car)
-summary(res.polr)
-fitted(res.polr)
-res.clm=clm(factor(response)~factor(age)+factor(sex),weights=frequency,data=car)
+res.clm=clm(factor(num)~age+factor(sex) + factor(cp) + trestbps + chol + factor(fbs) + factor(restecg) + thalach + factor(exang) + oldpeak + factor(slope) + factor(ca) + factor(thal), data=processed.cleveland)
 summary(res.clm)
-fitted(res.clm)
-confint(res.clm, type = "Wald")
+(res.clm.ctable <- coef(summary(res.clm)))
+
+backwardsSelection(res.clm)
+
+
+
+
+
+res.bracl <- bracl(factor(num)~age+factor(sex) + factor(cp) + trestbps + chol + factor(fbs) + factor(restecg) + thalach + factor(exang) + oldpeak + factor(slope) + factor(ca) + factor(thal), data = processed.cleveland,
+      parallel = TRUE, type = "ML")
+summary(res.bracl)
+(ctable.bracl <- coef(summary(res.bracl)))
+
+backwardsSelection(res.bracl)
+
+# Issues fitting cratio
+#res.cratio <- vglm(cbind(age, factor(sex), factor(cp), trestbps, chol, factor(fbs), factor(restecg),  thalach, factor(exang), oldpeak, factor(slope), factor(ca), factor(thal)) ~ factor(num),
+#                                 family=cratio(reverse=FALSE, parallel=TRUE), data=processed.cleveland)
+
+
+# JUST IMPORTED TO BRGLM2 MODEL, BEGIN TO MODEL THE ADJACENT CATEGORICAL MODEL
+# REMEMBER, MOST OF THE INSIGHTS SHOULD BE ON INTERPRETATION
+# CONSIDER DOING PREDICTIN
