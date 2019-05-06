@@ -7,116 +7,40 @@ library(VGAM)
 library(sure)
 library(ordinal)
 library(brglm2)
-
+library("nnet")
+source('~/Git-Projects/heart-disease-glm/utility.R')
 
 setwd("C:/Users/bbecerra/Documents/Git-Projects/heart-disease-glm")
-
-
-formatProcessedClevelandData <- function() {
-  processed.cleveland <- read.csv("data/processed.cleveland.data")
-  colnames(processed.cleveland) <- c("age", "sex", "cp", "trestbps", "chol", "fbs", "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal", "num")
-  processed.cleveland <- as.data.frame(apply(processed.cleveland, 2, as.numeric))
-  
-  processed.cleveland <- as.data.frame(sapply(processed.cleveland,function(cols) {
-    if(is.numeric(cols)) ifelse(is.na(cols),median(cols,na.rm=T),cols) else cols}))
-  
-  return(processed.cleveland)
-}
-
-  
-# TODO
-formatUnprocessedClevelandData <- function(){
-  cleveland <- readLines("data/cleveland.data")
-  
-  
-  matrix <- matro
-  for(line in cleveland){
-    print(strsplit(line, " "))
-  }
-  
-  
-  data <- list()
-  curr_row <- list()
-  lapply(cleveland, function(line){
-    line_split <- strsplit(line, " ")
-    if(line_split.contains("name")){
-      line_split.remove("name")
-      curr_row.append(line_split)
-      data.append(curr_row)
-      curr_row <- list()
-    } else {
-      curr_row.append(curr_row)
-    }
-  })
-}
-
-exploratoryAnalysis <- function(processed.cleveland) {
-  # Description of what the data looks like
-  head(processed.cleveland)
-  
-  # Histogram of the variables
-  hist(processed.cleveland)
-  
-  # Summary statistics of dataframe
-  summary(processed.cleveland)
-  
-}
-
-backwardsSelection <- function(model){
-  model <- res.polr
-  backwards <- step(model,trace=0)
-  summary(backwards)
-  formula(backwards)
-  (ctable <- coef(backwards))
-  
-  
-  ## calculate and store p valuesfitted(res.polr)
-  p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
-  ## combined table
-  (ctable <- cbind(ctable, "p value" = p))
-  return(backwards)
-}
-
-backwardsSelection <- function(model){
-  model <- res.polr
-  backwards <- step(model,direction = "backwards", trace=0)
-  return(backwards)
-}
-
-forwardsSelection <- function(model){
-  model <- res.polr
-  forwards <- step(model,direction = "forwards", trace=0)
-  return(forwards)
-}
-
-coefTable <- function (model) {
-  (ctable <- coef(summary(model)))
-  p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
-  (ctable <- cbind(ctable, "p value" = p))
-  (ci <- confint(model, type = "Wald"))
-  return(ctable)  
-}
-
-residDiagnostics <- function(resids.std) {
-  qqnorm(resids.std, 
-         ylab="Standardized Residuals", 
-         xlab="Normal Scores", 
-         main="Residuals QQ")
-  hist(resids.std)
-  plot(main="Residual Plot", resids.std)
-}
-
-calcStandardResiduals <- function(model){
-  model.residuals <- resids(model)
-  model.residuals.std <- (model.residuals - mean(model.residuals))/ sd(model.residuals)
-  return(model.residuals.std)
-}
-
 "
   Retrieved data
 "
 cleveland <- formatUnprocessedClevelandData()
 processed.cleveland <- formatProcessedClevelandData()
+
+
+### Re-level variables and variable creation
+processed.cleveland$num <- relevel(factor(processed.cleveland$num), ref = 1) # Reference: No Heart Disease 
+processed.cleveland$binary_num <- with(processed.cleveland, 1*(num != 0)) # BINARY RESPONSE VARIABLE: If any level of heart disease present (num > 0), set to 1
+processed.cleveland$sex <- relevel(factor(processed.cleveland$sex), ref = 1) # Reference : Female
+processed.cleveland$cp <- relevel(factor(processed.cleveland$cp), ref = 4) # Reference: asymptomatic chest pain
+processed.cleveland$fbs <- relevel(factor(processed.cleveland$fbs), ref = 1) # Refernce: fasting blood sugar < 120 mg/dl
+processed.cleveland$restecg <- relevel(factor(processed.cleveland$restecg), ref = 1) # Reference: Normal Rest ECG
+processed.cleveland$exang <- relevel(factor(processed.cleveland$exang), ref = 1) # Reference: No exercise angina
+processed.cleveland$slope <- relevel(factor(processed.cleveland$slope), ref = 2) # Reference: Flat
+processed.cleveland$ca <- relevel(factor(processed.cleveland$ca), ref = 1) # Reference: 0 major vessels
+processed.cleveland$thal <- relevel(factor(processed.cleveland$thal), ref = 1) # Reference: Normal
+
+"
+  Binary logistic regression
+"
+# TODO
+
+"
+  Baseline-categorical Logit Model
+"
+res.multinom <- multinom(factor(num)~age+factor(sex) + factor(cp) + trestbps + chol + factor(fbs) + factor(restecg) + thalach + factor(exang) + oldpeak + factor(slope) + factor(ca) + factor(thal),data=processed.cleveland)
+summary(res.multinom)
+logLik(res.multinom)
 
 "
  Proportional odds model
