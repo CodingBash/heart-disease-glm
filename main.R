@@ -7,8 +7,7 @@ library(VGAM)
 library(sure)
 library(ordinal)
 library(brglm2)
-library(tidyverse)
-# library(ordinal)
+
 
 setwd("C:/Users/bbecerra/Documents/Git-Projects/heart-disease-glm")
 
@@ -64,56 +63,89 @@ exploratoryAnalysis <- function(processed.cleveland) {
 }
 
 backwardsSelection <- function(model){
+  model <- res.polr
   backwards <- step(model,trace=0)
   summary(backwards)
   formula(backwards)
+  (ctable <- coef(backwards))
+  
+  
+  ## calculate and store p valuesfitted(res.polr)
+  p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
+  ## combined table
+  (ctable <- cbind(ctable, "p value" = p))
   return(backwards)
 }
 
-residualDiagnostics <- function ()
+backwardsSelection <- function(model){
+  model <- res.polr
+  backwards <- step(model,direction = "backwards", trace=0)
+  return(backwards)
+}
 
-cleveland <- formatUnprocessedClevelandData()
-processed.cleveland <- formatProcessedClevelandData()
-res.polr=polr(factor(num)~age+factor(sex) + factor(cp) + trestbps + chol + factor(fbs) + factor(restecg) + thalach + factor(exang) + oldpeak + factor(slope) + factor(ca) + factor(thal),data=processed.cleveland)
-summary(res.polr)
-(ctable <- coef(summary(res.polr)))
+forwardsSelection <- function(model){
+  model <- res.polr
+  forwards <- step(model,direction = "forwards", trace=0)
+  return(forwards)
+}
 
-backwardsSelection(res.polr)
+coefTable <- function (model) {
+  (ctable <- coef(summary(model)))
+  p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
+  (ctable <- cbind(ctable, "p value" = p))
+  (ci <- confint(model, type = "Wald"))
+  return(ctable)  
+}
 
-## calculate and store p valuesfitted(res.polr)
-p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
-
-## combined table
-(ctable <- cbind(ctable, "p value" = p))
-(ci <- confint(res.polr)) # default method gives profiled CIs
-residuals.polr <- resids(res.polr)
-residuals.polr.std <- (residuals.polr - mean(residuals.polr))/ sd(residuals.polr)
-
-qqnorm(residuals.polr.std, 
+residDiagnostics <- function(resids.std) {
+  qqnorm(resids.std, 
          ylab="Standardized Residuals", 
          xlab="Normal Scores", 
-         main="Old Faithful Eruptions") 
-hist(residuals.polr)
-plot(residuals.polr)
+         main="Residuals QQ")
+  hist(resids.std)
+  plot(main="Residual Plot", resids.std)
+}
+
+calcStandardResiduals <- function(model){
+  model.residuals <- resids(model)
+  model.residuals.std <- (model.residuals - mean(model.residuals))/ sd(model.residuals)
+  return(model.residuals.std)
+}
+
+"
+  Retrieved data
+"
+cleveland <- formatUnprocessedClevelandData()
+processed.cleveland <- formatProcessedClevelandData()
+
+"
+ Proportional odds model
+"
+res.polr=polr(factor(num)~age+factor(sex) + factor(cp) + trestbps + chol + factor(fbs) + factor(restecg) + thalach + factor(exang) + oldpeak + factor(slope) + factor(ca) + factor(thal),data=processed.cleveland)
+summary(res.polr)
+coefTable(res.polr)
+res.polr <- backwardsSelection(res.polr)
 
 
-
+"
+  Cumulative logit model
+"
 res.clm=clm(factor(num)~age+factor(sex) + factor(cp) + trestbps + chol + factor(fbs) + factor(restecg) + thalach + factor(exang) + oldpeak + factor(slope) + factor(ca) + factor(thal), data=processed.cleveland)
 summary(res.clm)
 (res.clm.ctable <- coef(summary(res.clm)))
 
-backwardsSelection(res.clm)
-
-
-
-
-
+"
+  Adjacent Categories Model
+"
 res.bracl <- bracl(factor(num)~age+factor(sex) + factor(cp) + trestbps + chol + factor(fbs) + factor(restecg) + thalach + factor(exang) + oldpeak + factor(slope) + factor(ca) + factor(thal), data = processed.cleveland,
       parallel = TRUE, type = "ML")
 summary(res.bracl)
-(ctable.bracl <- coef(summary(res.bracl)))
 
-backwardsSelection(res.bracl)
+
+
+
+
+
 
 # Issues fitting cratio
 #res.cratio <- vglm(cbind(age, factor(sex), factor(cp), trestbps, chol, factor(fbs), factor(restecg),  thalach, factor(exang), oldpeak, factor(slope), factor(ca), factor(thal)) ~ factor(num),
