@@ -32,8 +32,12 @@ processed.cleveland$thal <- relevel(factor(processed.cleveland$thal), ref = 1) #
 
 "
   Binary logistic regression
+
+  - predictive performance metrics will be compared between this model and the best nominal/ordinal model
+
 "
-# TODO
+res.binomial <- glm(binary_num~ age + sex + cp + trestbps + chol + fbs + restecg + thalach + exang + oldpeak + slope + ca + thal,family=binomial(link="logit"),data=processed.cleveland)
+summary(res.binomial)
 
 "
   Baseline-categorical Logit Model
