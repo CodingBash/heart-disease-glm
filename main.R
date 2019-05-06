@@ -99,7 +99,8 @@ res.multinom.full <- multinom(ordinal.full.model, data=processed.cleveland)
 summary(res.multinom.full)
 res.multinom.full.backward <- backwardsSelection(res.multinom.full)
 res.multinom.full.backward.residuals <- resid(res.multinom.full.backward)
-
+summary(res.multinom.full.backward)
+formula(res.multinom.full.backward)
 
 exp(summary(res.multinom.full.backward)$coefficients) # INTERPRETATION: Odds of getting severity of heart disease relative to getting no heart disease
 
@@ -110,6 +111,7 @@ res.polr.full <- polr(ordinal.full.model, data=processed.cleveland)
 summary(res.polr.full)
 res.polr.full.backward <- backwardsSelection(res.polr.full)
 res.polr.full.backward.residuals <- resids(res.polr.full.backward)
+summary(res.polr.full.backward)
 
 exp(res.polr.full.backward$coefficients) # INTERPRETATION: Odds of following into a heart disease severity or lower
 
