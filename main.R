@@ -41,24 +41,29 @@ ordinal.full.model <- num ~ age + sex + cp + trestbps + chol + fbs + restecg + t
 processed.cleveland.positive <- processed.cleveland[processed.cleveland$binary_num == 1,]
 processed.cleveland.negative <- processed.cleveland[processed.cleveland$binary_num == 0,]
 
-hist(processed.cleveland.positive$age, col=rgb(1,0,0,0.5))
+hist(processed.cleveland.positive$age, col=rgb(1,0,0,0.5), xlab="age (yrs)", main = "Age Distribution")
 hist(processed.cleveland.negative$age, col=rgb(0,0,1,0.5), add=T)
+legend("topright", c("Heart Disease", "Ho Heart Disease"), col=c("red", "blue"), lwd=10)
 box()
 
-hist(processed.cleveland.positive$trestbps, col=rgb(1,0,0,0.5))
+hist(processed.cleveland.positive$trestbps, col=rgb(1,0,0,0.5), xlab="rate per minute", main = "Resting Heart Rate Distribution")
 hist(processed.cleveland.negative$trestbps, col=rgb(0,0,1,0.5), add=T)
+legend("topright", c("Heart Disease", "Ho Heart Disease"), col=c("red", "blue"), lwd=10)
 box()
 
-hist(processed.cleveland.positive$chol, col=rgb(1,0,0,0.5))
+hist(processed.cleveland.positive$chol, col=rgb(1,0,0,0.5), xlab="mg/dl", main = "Cholestoral Level Distribution")
 hist(processed.cleveland.negative$chol, col=rgb(0,0,1,0.5), add=T)
+legend("topright", c("Heart Disease", "Ho Heart Disease"), col=c("red", "blue"), lwd=10)
 box()
 
-hist(processed.cleveland.positive$thalach, col=rgb(1,0,0,0.5))
+hist(processed.cleveland.positive$thalach, col=rgb(1,0,0,0.5), xlab="rate per minute", main = "Max Heart Rate Distribution")
 hist(processed.cleveland.negative$thalach, col=rgb(0,0,1,0.5), add=T)
+legend("topright", c("Heart Disease", "Ho Heart Disease"), col=c("red", "blue"), lwd=10)
 box()
 
-hist(processed.cleveland.positive$oldpeak, col=rgb(1,0,0,0.5))
+hist(processed.cleveland.positive$oldpeak, col=rgb(1,0,0,0.5), , xlab="ST Depression Induced by Exercise", main = "Old Peak Distribution")
 hist(processed.cleveland.negative$oldpeak, col=rgb(0,0,1,0.5), add=T)
+legend("topright", c("Heart Disease", "Ho Heart Disease"), col=c("red", "blue"), lwd=10)
 box()
 
 "
