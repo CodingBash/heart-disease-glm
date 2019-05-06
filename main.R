@@ -36,9 +36,38 @@ binomial.full.model <- binary_num ~ age + sex + cp + trestbps + chol + fbs + res
 ordinal.full.model <- num ~ age + sex + cp + trestbps + chol + fbs + restecg + thalach + exang + oldpeak + slope + ca + thal
 
 "
+  Exploratory analysis
+"
+processed.cleveland.positive <- processed.cleveland[processed.cleveland$binary_num == 1,]
+processed.cleveland.negative <- processed.cleveland[processed.cleveland$binary_num == 0,]
+
+hist(processed.cleveland.positive$age, col=rgb(1,0,0,0.5))
+hist(processed.cleveland.negative$age, col=rgb(0,0,1,0.5), add=T)
+box()
+
+hist(processed.cleveland.positive$trestbps, col=rgb(1,0,0,0.5))
+hist(processed.cleveland.negative$trestbps, col=rgb(0,0,1,0.5), add=T)
+box()
+
+hist(processed.cleveland.positive$chol, col=rgb(1,0,0,0.5))
+hist(processed.cleveland.negative$chol, col=rgb(0,0,1,0.5), add=T)
+box()
+
+hist(processed.cleveland.positive$thalach, col=rgb(1,0,0,0.5))
+hist(processed.cleveland.negative$thalach, col=rgb(0,0,1,0.5), add=T)
+box()
+
+hist(processed.cleveland.positive$oldpeak, col=rgb(1,0,0,0.5))
+hist(processed.cleveland.negative$oldpeak, col=rgb(0,0,1,0.5), add=T)
+box()
+
+"
   Binary logistic regression
 
   - predictive performance metrics will be compared between this model and the best nominal/ordinal model
+
+  INTERPRETATION
+    - 
 
 "
 res.binomial.full <- glm(binomial.full.model, family=binomial(link="logit"),data=processed.cleveland)
@@ -56,26 +85,35 @@ formula(res.binomial.forward)
 
 res.binomial.backward.residuals.std <- rstandard(res.binomial.backward)
 
+exp(res.binomial.backward$coefficients) # INTERPRETATION: Odds of getting heart disease
+
 "
   Baseline-categorical Logit Model
 "
 res.multinom.full <- multinom(ordinal.full.model, data=processed.cleveland)
 summary(res.multinom.full)
-res.multinom.full.residuals <- resid(res.multinom.full)
+res.multinom.full.backward <- backwardsSelection(res.multinom.full)
+res.multinom.full.backward.residuals <- resid(res.multinom.full.backward)
+
+
+exp(summary(res.multinom.full.backward)$coefficients) # INTERPRETATION: Odds of getting severity of heart disease relative to getting no heart disease
 
 "
  Proportional odds model
 "
 res.polr.full <- polr(ordinal.full.model, data=processed.cleveland)
 summary(res.polr.full)
-res.polr.full.residuals <- resids(res.polr.full)
+res.polr.full.backward <- backwardsSelection(res.polr.full)
+res.polr.full.backward.residuals <- resids(res.polr.full.backward)
+
+exp(res.polr.full.backward$coefficients) # INTERPRETATION: Odds of following into a heart disease severity or lower
 
 "
-  Cumulative logit model
+  IGNORE: Cumulative logit model
 "
-res.clm.full <- clm(ordinal.full.model, data=processed.cleveland)
-summary(res.clm.full)
-res.clm.full.residuals <- resids(res.clm.full)
+#res.clm.full <- clm(ordinal.full.model, data=processed.cleveland)
+#summary(res.clm.full)
+#res.clm.full.residuals <- resids(res.clm.full)
 #(res.clm.ctable <- coef(summary(res.clm)))
 
 
@@ -84,9 +122,8 @@ res.clm.full.residuals <- resids(res.clm.full)
     - poor AIC
 "
 res.bracl.full <- bracl(ordinal.full.model, data = processed.cleveland, parallel = TRUE, type = "ML")
-summary(res.bracl)
-
-
+summary(res.bracl.full)
+exp(summary(res.bracl.full)$coefficients[,1]) # INTERPRETATION: Odds of getting one severity over the lower one 
 
 
 
