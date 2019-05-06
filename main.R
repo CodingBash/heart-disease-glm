@@ -31,13 +31,17 @@ processed.cleveland$slope <- relevel(factor(processed.cleveland$slope), ref = 2)
 processed.cleveland$ca <- relevel(factor(processed.cleveland$ca), ref = 1) # Reference: 0 major vessels
 processed.cleveland$thal <- relevel(factor(processed.cleveland$thal), ref = 1) # Reference: Normal
 
+# Formulas
+binomial.full.model <- binary_num ~ age + sex + cp + trestbps + chol + fbs + restecg + thalach + exang + oldpeak + slope + ca + thal
+ordinal.full.model <- num ~ age + sex + cp + trestbps + chol + fbs + restecg + thalach + exang + oldpeak + slope + ca + thal
+
 "
   Binary logistic regression
 
   - predictive performance metrics will be compared between this model and the best nominal/ordinal model
 
 "
-res.binomial.full <- glm(binary_num ~ age + sex + cp + trestbps + chol + fbs + restecg + thalach + exang + oldpeak + slope + ca + thal,family=binomial(link="logit"),data=processed.cleveland)
+res.binomial.full <- glm(binomial.full.model, family=binomial(link="logit"),data=processed.cleveland)
 res.binomial.none <- glm(binary_num ~ 1,family=binomial(link="logit"),data=processed.cleveland)
 res.binomial.backward <- backwardsSelection(res.binomial.full)
 res.binomial.forward <- forwardsSelection(res.binomial.none)
@@ -55,31 +59,31 @@ res.binomial.backward.residuals.std <- rstandard(res.binomial.backward)
 "
   Baseline-categorical Logit Model
 "
-res.multinom.full <- multinom(num ~ age + sex + cp + trestbps + chol + fbs + restecg + thalach + exang + oldpeak + slope + ca + thal,data=processed.cleveland)
+res.multinom.full <- multinom(ordinal.full.model, data=processed.cleveland)
 summary(res.multinom.full)
 res.multinom.full.residuals <- resid(res.multinom.full)
 
 "
  Proportional odds model
 "
-res.polr=polr(factor(num)~age+factor(sex) + factor(cp) + trestbps + chol + factor(fbs) + factor(restecg) + thalach + factor(exang) + oldpeak + factor(slope) + factor(ca) + factor(thal),data=processed.cleveland)
-summary(res.polr)
-coefTable(res.polr)
-res.polr <- backwardsSelection(res.polr)
-
+res.polr.full <- polr(ordinal.full.model, data=processed.cleveland)
+summary(res.polr.full)
+res.polr.full.residuals <- resids(res.polr.full)
 
 "
   Cumulative logit model
 "
-res.clm=clm(factor(num)~age+factor(sex) + factor(cp) + trestbps + chol + factor(fbs) + factor(restecg) + thalach + factor(exang) + oldpeak + factor(slope) + factor(ca) + factor(thal), data=processed.cleveland)
-summary(res.clm)
-(res.clm.ctable <- coef(summary(res.clm)))
+res.clm.full <- clm(ordinal.full.model, data=processed.cleveland)
+summary(res.clm.full)
+res.clm.full.residuals <- resids(res.clm.full)
+#(res.clm.ctable <- coef(summary(res.clm)))
+
 
 "
   Adjacent Categories Model
+    - poor AIC
 "
-res.bracl <- bracl(factor(num)~age+factor(sex) + factor(cp) + trestbps + chol + factor(fbs) + factor(restecg) + thalach + factor(exang) + oldpeak + factor(slope) + factor(ca) + factor(thal), data = processed.cleveland,
-      parallel = TRUE, type = "ML")
+res.bracl.full <- bracl(ordinal.full.model, data = processed.cleveland, parallel = TRUE, type = "ML")
 summary(res.bracl)
 
 
