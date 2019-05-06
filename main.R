@@ -8,6 +8,7 @@ library(sure)
 library(ordinal)
 library(brglm2)
 library("nnet")
+library(boot)
 source('~/Git-Projects/heart-disease-glm/utility.R')
 
 setwd("C:/Users/bbecerra/Documents/Git-Projects/heart-disease-glm")
@@ -36,15 +37,27 @@ processed.cleveland$thal <- relevel(factor(processed.cleveland$thal), ref = 1) #
   - predictive performance metrics will be compared between this model and the best nominal/ordinal model
 
 "
-res.binomial <- glm(binary_num~ age + sex + cp + trestbps + chol + fbs + restecg + thalach + exang + oldpeak + slope + ca + thal,family=binomial(link="logit"),data=processed.cleveland)
-summary(res.binomial)
+res.binomial.full <- glm(binary_num ~ age + sex + cp + trestbps + chol + fbs + restecg + thalach + exang + oldpeak + slope + ca + thal,family=binomial(link="logit"),data=processed.cleveland)
+res.binomial.none <- glm(binary_num ~ 1,family=binomial(link="logit"),data=processed.cleveland)
+res.binomial.backward <- backwardsSelection(res.binomial.full)
+res.binomial.forward <- forwardsSelection(res.binomial.none)
+
+summary(res.binomial.full)
+summary(res.binomial.backward)
+summary(res.binomial.forward)
+
+formula(res.binomial.full)
+formula(res.binomial.backward)
+formula(res.binomial.forward)
+
+res.binomial.backward.residuals.std <- rstandard(res.binomial.backward)
 
 "
   Baseline-categorical Logit Model
 "
-res.multinom <- multinom(factor(num)~age+factor(sex) + factor(cp) + trestbps + chol + factor(fbs) + factor(restecg) + thalach + factor(exang) + oldpeak + factor(slope) + factor(ca) + factor(thal),data=processed.cleveland)
-summary(res.multinom)
-logLik(res.multinom)
+res.multinom.full <- multinom(num ~ age + sex + cp + trestbps + chol + fbs + restecg + thalach + exang + oldpeak + slope + ca + thal,data=processed.cleveland)
+summary(res.multinom.full)
+res.multinom.full.residuals <- resid(res.multinom.full)
 
 "
  Proportional odds model

@@ -49,29 +49,12 @@ exploratoryAnalysis <- function(processed.cleveland) {
 }
 
 backwardsSelection <- function(model){
-  model <- res.polr
-  backwards <- step(model,trace=0)
-  summary(backwards)
-  formula(backwards)
-  (ctable <- coef(backwards))
-  
-  
-  ## calculate and store p valuesfitted(res.polr)
-  p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
-  ## combined table
-  (ctable <- cbind(ctable, "p value" = p))
-  return(backwards)
-}
-
-backwardsSelection <- function(model){
-  model <- res.polr
-  backwards <- step(model,direction = "backwards", trace=0)
+  backwards <- step(model,direction = "backward", trace=0)
   return(backwards)
 }
 
 forwardsSelection <- function(model){
-  model <- res.polr
-  forwards <- step(model,direction = "forwards", trace=0)
+  forwards <- step(model,direction = "forward", trace=0)
   return(forwards)
 }
 
